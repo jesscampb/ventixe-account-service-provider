@@ -1,6 +1,7 @@
 ﻿using AccountServiceProvider.Api.Data.Contexts;
 using AccountServiceProvider.Api.Data.Entities;
 using AccountServiceProvider.Api.Dtos;
+using AccountServiceProvider.Api.Mappers;
 using AccountServiceProvider.Api.Services.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,19 +28,7 @@ public class AccountService(AccountDbContext context) : IAccountService
             };
         }
 
-        var profile = new AccountProfile
-        {
-            Id = request.UserId,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Phone = request.Phone,
-            Address = new AccountProfileAddress
-            {
-                StreetName = request.StreetName,
-                PostalCode = request.PostalCode,
-                City = request.City
-            }
-        };
+        var profile = request.ToEntity();
 
         await _context.Profiles.AddAsync(profile);
         await _context.SaveChangesAsync();
@@ -78,24 +67,13 @@ public class AccountService(AccountDbContext context) : IAccountService
 
     public async Task<AccountResult<AccountProfile>> UpdateAsync(string id, UpdateProfileRequest request)
     {
-        var getProfileResult = await GetByIdAsync(id);
+        var result = await GetByIdAsync(id);
 
-        if (!getProfileResult.Succeeded)
-            return getProfileResult;
+        if (!result.Succeeded)
+            return result;
 
-        var profile = getProfileResult.Result!;
-
-        profile.FirstName = request.FirstName;
-        profile.LastName = request.LastName;
-        profile.Phone = request.Phone;
-
-        if (profile.Address == null)
-            profile.Address = new AccountProfileAddress { AccountProfileId = id };
-
-        profile.Address.StreetName = request.StreetName;
-        profile.Address.PostalCode = request.PostalCode;
-        profile.Address.City = request.City;
-
+        var profile = result.Result!;
+        profile.Map(request);
 
         await _context.SaveChangesAsync();
 
