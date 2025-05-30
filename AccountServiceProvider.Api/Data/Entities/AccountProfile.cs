@@ -2,7 +2,7 @@
 
 namespace AccountServiceProvider.Api.Data.Entities;
 
-public class AccountProfileEntity
+public class AccountProfile
 {
     [Key]
     public string Id { get; set; } = Guid.NewGuid().ToString();
@@ -10,5 +10,5 @@ public class AccountProfileEntity
     public string LastName { get; set; } = null!;
     public string Phone { get; set; } = null!;
 
-    public AccountProfileAddressEntity? Address { get; set; }
+    public AccountProfileAddress? Address { get; set; }
 }
