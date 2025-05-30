@@ -45,4 +45,14 @@ public class AccountsController(IAccountService accountService) : ControllerBase
 
         return Ok(result.Result);
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(string id)
+    {
+        var result = await _accountService.DeleteAsync(id);
+        if (!result.Succeeded)
+            return NotFound(result.Message);
+
+        return NoContent();
+    }
 }
