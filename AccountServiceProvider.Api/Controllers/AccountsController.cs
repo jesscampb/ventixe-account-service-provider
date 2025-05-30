@@ -22,4 +22,14 @@ public class AccountsController(IAccountService accountService) : ControllerBase
 
         return Ok(result.Result);
     }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(string id)
+    {
+        var result = await _accountService.GetByIdAsync(id);
+        if (!result.Succeeded)
+            return NotFound(result.Message);
+
+        return Ok(result.Result);
+    }
 }
