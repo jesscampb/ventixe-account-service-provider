@@ -13,9 +13,9 @@ public class AccountsController(IAccountService accountService) : ControllerBase
 
 
     /// <summary>
-    /// Creates a new account profile.
+    /// Creates a new account profile using the IdentityUserId.
     /// </summary>
-    /// <param name="dto">The request DTO containing IdentityId and profile details.</param>
+    /// <param name="dto">The request DTO containing the IdentityUserId and profile details.</param>
     /// <returns>The created account profile.</returns>
     /// <response code="200">The profile was created successfully.</response>
     /// <response code="400">The request was invalid (validation failed).</response>
@@ -39,9 +39,9 @@ public class AccountsController(IAccountService accountService) : ControllerBase
 
 
     /// <summary>
-    /// Retrieves an existing account profile by its IdentityId.
+    /// Retrieves an existing account profile by its IdentityUserId.
     /// </summary>
-    /// <param name="id">The IdentityId of the profile to retrieve.</param>
+    /// <param name="id">The IdentityUserId of the profile to retrieve.</param>
     /// <returns>The requested account profile along with its address.</returns>
     /// <response code="200">The profile was found and is returned.</response>
     /// <response code="404">No profile with the specified IdentityId was found.</response>
@@ -62,7 +62,7 @@ public class AccountsController(IAccountService accountService) : ControllerBase
     /// <summary>
     /// Updates an existing account profile.
     /// </summary>
-    /// <param name="id">The IdentityId of the profile to update.</param>
+    /// <param name="id">The IdentityUserId of the profile to update.</param>
     /// <param name="dto">The request DTO containing updated profile details.</param>
     /// <returns>The updated account profile.</returns>
     /// <response code="200">The profile was updated successfully.</response>
@@ -88,7 +88,7 @@ public class AccountsController(IAccountService accountService) : ControllerBase
     /// <summary>
     /// Deletes an existing account profile.
     /// </summary>
-    /// <param name="id">The IdentityId of the profile to delete.</param>
+    /// <param name="id">The IdentityUserId of the profile to delete.</param>
     /// <response code="204">The profile was deleted successfully.</response>
     /// <response code="404">No profile with the specified IdentityId was found.</response>
     [HttpDelete("{id}")]
