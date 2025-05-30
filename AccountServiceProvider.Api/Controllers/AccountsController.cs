@@ -32,4 +32,17 @@ public class AccountsController(IAccountService accountService) : ControllerBase
 
         return Ok(result.Result);
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(string id, [FromBody] UpdateProfileRequest dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var result = await _accountService.UpdateAsync(id, dto);
+        if (!result.Succeeded)
+            return NotFound(result.Message);
+
+        return Ok(result.Result);
+    }
 }
