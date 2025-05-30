@@ -2,11 +2,8 @@
 
 namespace AccountServiceProvider.Api.Dtos;
 
-public class CreateAccountRequest
+public class UpdateProfileRequest
 {
-    [Required]
-    public string UserId { get; set; } = null!;
-
     [Required]
     [StringLength(100, MinimumLength = 2)]
     public string FirstName { get; set; } = null!;
