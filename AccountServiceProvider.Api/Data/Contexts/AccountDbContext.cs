@@ -9,7 +9,7 @@ public class AccountDbContext(DbContextOptions<AccountDbContext> options) : DbCo
     public DbSet<AccountProfileAddress> ProfileAddresses { get; set; }
 
 
-    // När ett konto raderas från databasen så försvinner även adressen som är kopplad (cascading)
+    // Deleting an account profile also deletes the assocciated profile address (cascading)
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
