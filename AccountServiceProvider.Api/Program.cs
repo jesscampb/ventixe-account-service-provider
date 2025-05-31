@@ -1,5 +1,6 @@
 using AccountServiceProvider.Api.Data.Contexts;
 using AccountServiceProvider.Api.Services;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
@@ -21,8 +22,9 @@ builder.Services.AddSwaggerGen(x =>
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", "Ventixe Account Service Provider API"));
 
+app.UseRewriter(new RewriteOptions().AddRedirect("^$", "swagger"));
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
