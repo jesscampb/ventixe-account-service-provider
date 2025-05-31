@@ -49,6 +49,8 @@ app.UseSwagger();
 app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", "Ventixe Account Service API"));
 
 app.UseRewriter(new RewriteOptions().AddRedirect("^$", "swagger"));
+
+app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
