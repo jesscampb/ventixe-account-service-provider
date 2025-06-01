@@ -14,6 +14,11 @@ public class CreateAccountRequest
     public string UserId { get; set; } = null!;
 
     /// <summary>
+    /// The unique Identity user Email to associate with this profile.
+    /// </summary>
+    public string Email { get; set; } = null!;
+
+    /// <summary>
     /// The user's first name.
     /// </summary>
     [Required]
