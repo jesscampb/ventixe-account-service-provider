@@ -11,6 +11,7 @@ public static class AccountProfileMapper
         => new()
         {
             Id = dto.UserId,
+            Email = dto.Email,
             FirstName = dto.FirstName,
             LastName = dto.LastName,
             Phone = dto.Phone,
