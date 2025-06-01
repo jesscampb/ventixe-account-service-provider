@@ -3,24 +3,28 @@ using AccountServiceProvider.Api.Data.Entities;
 using AccountServiceProvider.Api.Dtos;
 using AccountServiceProvider.Api.Services;
 using Microsoft.EntityFrameworkCore;
-using Moq;
-using Moq.EntityFrameworkCore;
 
 namespace AccountServiceProvider.Api.Tests;
 
-public class AccountServiceTests
+public class AccountServiceTests : IDisposable
 {
-    private readonly Mock<AccountDbContext> _mockContext;
+    private readonly AccountDbContext _context;
     private readonly AccountService _accountService;
 
     public AccountServiceTests()
     {
-        _mockContext = new Mock<AccountDbContext>(new DbContextOptions<AccountDbContext>());
+        var options = new DbContextOptionsBuilder<AccountDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
 
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1); // Simulate successful save
+        _context = new AccountDbContext(options);
+        _accountService = new AccountService(_context);
+    }
 
-        _accountService = new AccountService(_mockContext.Object);
+    private async Task SeedData(IEnumerable<AccountProfile> profiles)
+    {
+        await _context.Profiles.AddRangeAsync(profiles);
+        await _context.SaveChangesAsync();
     }
 
     [Fact]
@@ -28,8 +32,7 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = "existing-id";
-        var profiles = new List<AccountProfile> { new AccountProfile { Id = accountId, Email = "test@test.com", FirstName = "Test", LastName = "User", Phone = "123" } };
-        _mockContext.Setup(x => x.Profiles).ReturnsDbSet(profiles);
+        await SeedData(new List<AccountProfile> { new AccountProfile { Id = accountId, Email = "test@test.com", FirstName = "Test", LastName = "User", Phone = "123" } });
 
         // Act
         var result = await _accountService.ExistsAsync(accountId);
@@ -43,8 +46,6 @@ public class AccountServiceTests
     {
         // Arrange  
         var accountId = "non-existing-id";
-        var profiles = new List<AccountProfile>();
-        _mockContext.Setup(x => x.Profiles).ReturnsDbSet(profiles);
 
         // Act
         var result = await _accountService.ExistsAsync(accountId);
@@ -68,9 +69,6 @@ public class AccountServiceTests
             City = "Testville"
         };
 
-        var profiles = new List<AccountProfile>();
-        _mockContext.Setup(x => x.Profiles).ReturnsDbSet(profiles);
-
         // Act
         var result = await _accountService.CreateAsync(request);
 
@@ -79,17 +77,20 @@ public class AccountServiceTests
         Assert.NotNull(result.Result);
         Assert.Equal(request.UserId, result.Result.Id);
         Assert.Equal("Account profile created.", result.Message);
-        _mockContext.Verify(m => m.Profiles.AddAsync(It.Is<AccountProfile>(p => p.Id == request.UserId), default), Times.Once);
-        _mockContext.Verify(c => c.SaveChangesAsync(default), Times.Once);
+
+        var savedProfile = await _context.Profiles.FindAsync(request.UserId);
+        Assert.NotNull(savedProfile);
+        Assert.Equal(request.FirstName, savedProfile.FirstName);
     }
 
     [Fact]
     public async Task CreateAsync_ShouldReturnFailure_WhenProfileAlreadyExists()
     {
         // Arrange
-        var request = new CreateAccountRequest { UserId = "existing-user-id", FirstName = "Test", LastName = "User", Phone = "123", StreetName = "Street", PostalCode = "12345", City = "City" };
-        var profiles = new List<AccountProfile> { new AccountProfile { Id = "existing-user-id", Email = "existing@test.com", FirstName = "Old", LastName = "User", Phone = "000" } };
-        _mockContext.Setup(x => x.Profiles).ReturnsDbSet(profiles);
+        var existingUserId = "existing-user-id";
+        await SeedData(new List<AccountProfile> { new AccountProfile { Id = existingUserId, Email = "existing@test.com", FirstName = "Old", LastName = "User", Phone = "000" } });
+
+        var request = new CreateAccountRequest { UserId = existingUserId, FirstName = "Test", LastName = "User", Phone = "123", StreetName = "Street", PostalCode = "12345", City = "City" };
 
         // Act
         var result = await _accountService.CreateAsync(request);
@@ -105,7 +106,7 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = "existing-id";
-        var expectedProfile = new AccountProfile
+        var expectedProfileData = new AccountProfile
         {
             Id = accountId,
             FirstName = "Jane",
@@ -114,8 +115,7 @@ public class AccountServiceTests
             Phone = "0987654321",
             Address = new AccountProfileAddress { AccountProfileId = accountId, StreetName = "456 Oak Ave", PostalCode = "54321", City = "Testburg" }
         };
-        var profiles = new List<AccountProfile> { expectedProfile };
-        _mockContext.Setup(x => x.Profiles).ReturnsDbSet(profiles);
+        await SeedData(new List<AccountProfile> { expectedProfileData });
 
         // Act
         var result = await _accountService.GetByIdAsync(accountId);
@@ -124,7 +124,8 @@ public class AccountServiceTests
         Assert.True(result.Succeeded);
         Assert.NotNull(result.Result);
         Assert.Equal(accountId, result.Result.Id);
-        Assert.Equal(expectedProfile.Address?.StreetName, result.Result.Address?.StreetName);
+        Assert.NotNull(result.Result.Address);
+        Assert.Equal(expectedProfileData.Address?.StreetName, result.Result.Address?.StreetName);
         Assert.Equal("Account profile retrieved.", result.Message);
     }
 
@@ -133,8 +134,6 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = "non-existing-id";
-        var profiles = new List<AccountProfile>();
-        _mockContext.Setup(x => x.Profiles).ReturnsDbSet(profiles);
 
         // Act
         var result = await _accountService.GetByIdAsync(accountId);
@@ -150,6 +149,17 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = "existing-id";
+        var initialProfile = new AccountProfile
+        {
+            Id = accountId,
+            FirstName = "John",
+            LastName = "Doe",
+            Email = "john@example.com",
+            Phone = "1234567890",
+            Address = new AccountProfileAddress { AccountProfileId = accountId, StreetName = "123 Main St", PostalCode = "12345", City = "Testville" }
+        };
+        await SeedData(new List<AccountProfile> { initialProfile });
+
         var updateRequest = new UpdateProfileRequest
         {
             FirstName = "John Updated",
@@ -159,17 +169,6 @@ public class AccountServiceTests
             PostalCode = "67890",
             City = "New Testville"
         };
-        var existingProfile = new AccountProfile
-        {
-            Id = accountId,
-            FirstName = "John",
-            LastName = "Doe",
-            Email = "john@example.com",
-            Phone = "1234567890",
-            Address = new AccountProfileAddress { AccountProfileId = accountId, StreetName = "123 Main St", PostalCode = "12345", City = "Testville" }
-        };
-        var profiles = new List<AccountProfile> { existingProfile };
-        _mockContext.Setup(x => x.Profiles).ReturnsDbSet(profiles);
 
         // Act
         var result = await _accountService.UpdateAsync(accountId, updateRequest);
@@ -178,9 +177,14 @@ public class AccountServiceTests
         Assert.True(result.Succeeded);
         Assert.NotNull(result.Result);
         Assert.Equal(updateRequest.FirstName, result.Result.FirstName);
+        Assert.NotNull(result.Result.Address);
         Assert.Equal(updateRequest.StreetName, result.Result.Address?.StreetName);
         Assert.Equal("Account profile information updated.", result.Message);
-        _mockContext.Verify(c => c.SaveChangesAsync(default), Times.Once);
+
+        var updatedProfileInDb = await _context.Profiles.Include(p => p.Address).FirstOrDefaultAsync(p => p.Id == accountId);
+        Assert.NotNull(updatedProfileInDb);
+        Assert.Equal(updateRequest.FirstName, updatedProfileInDb.FirstName);
+        Assert.Equal(updateRequest.StreetName, updatedProfileInDb.Address?.StreetName);
     }
 
     [Fact]
@@ -189,8 +193,6 @@ public class AccountServiceTests
         // Arrange
         var accountId = "non-existing-id";
         var updateRequest = new UpdateProfileRequest { FirstName = "Test", LastName = "User", Phone = "123", StreetName = "Street", PostalCode = "12345", City = "City" };
-        var profiles = new List<AccountProfile>();
-        _mockContext.Setup(x => x.Profiles).ReturnsDbSet(profiles);
 
         // Act
         var result = await _accountService.UpdateAsync(accountId, updateRequest);
@@ -206,9 +208,7 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = "existing-id";
-        var existingProfile = new AccountProfile { Id = accountId, Email = "delete@example.com", FirstName = "Delete", LastName = "Me", Phone = "555" };
-        var profiles = new List<AccountProfile> { existingProfile };
-        _mockContext.Setup(x => x.Profiles).ReturnsDbSet(profiles);
+        await SeedData(new List<AccountProfile> { new AccountProfile { Id = accountId, Email = "delete@example.com", FirstName = "Delete", LastName = "Me", Phone = "555" } });
 
         // Act
         var result = await _accountService.DeleteAsync(accountId);
@@ -216,8 +216,9 @@ public class AccountServiceTests
         // Assert
         Assert.True(result.Succeeded);
         Assert.Equal("Account profile deleted.", result.Message);
-        _mockContext.Verify(m => m.Profiles.Remove(It.Is<AccountProfile>(p => p.Id == accountId)), Times.Once);
-        _mockContext.Verify(c => c.SaveChangesAsync(default), Times.Once);
+
+        var deletedProfile = await _context.Profiles.FindAsync(accountId);
+        Assert.Null(deletedProfile);
     }
 
     [Fact]
@@ -225,8 +226,6 @@ public class AccountServiceTests
     {
         // Arrange
         var accountId = "non-existing-id";
-        var profiles = new List<AccountProfile>();
-        _mockContext.Setup(x => x.Profiles).ReturnsDbSet(profiles);
 
         // Act
         var result = await _accountService.DeleteAsync(accountId);
@@ -234,5 +233,10 @@ public class AccountServiceTests
         // Assert
         Assert.False(result.Succeeded);
         Assert.Equal("Account profile not found.", result.Message);
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
     }
 }
