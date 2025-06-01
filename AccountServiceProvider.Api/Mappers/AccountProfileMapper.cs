@@ -1,7 +1,5 @@
 ﻿using AccountServiceProvider.Api.Data.Entities;
 using AccountServiceProvider.Api.Dtos;
-using Azure.Core;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AccountServiceProvider.Api.Mappers;
 
