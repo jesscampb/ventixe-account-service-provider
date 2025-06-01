@@ -16,6 +16,8 @@ public class CreateAccountRequest
     /// <summary>
     /// The unique Identity user Email to associate with this profile.
     /// </summary>
+    [Required]
+    [EmailAddress]
     public string Email { get; set; } = null!;
 
     /// <summary>
