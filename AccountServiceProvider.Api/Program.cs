@@ -17,14 +17,17 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 
 builder.Services.AddControllers();
 
+// Behövs ingen CORS i denna uppgift egentligen, eftersom ingen server-client kommunikation sker,
+// men lägger till ändå med tanken om en eventuell framtida implementation av en client-del, t ex React.
+// Skalbarhet.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policyBuilder =>
     {
         policyBuilder
             .WithOrigins(allowedOrigins)
-            .WithMethods("GET", "POST", "PUT", "DELETE")
-            .WithHeaders("Content-Type", "Authorization")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
             .AllowCredentials();
     });
 });
