@@ -5,8 +5,8 @@ namespace AccountServiceProvider.Api.Data.Contexts;
 
 public class AccountDbContext(DbContextOptions<AccountDbContext> options) : DbContext(options)
 {
-    public DbSet<AccountProfile> Profiles { get; set; }
-    public DbSet<AccountProfileAddress> ProfileAddresses { get; set; }
+    public virtual DbSet<AccountProfile> Profiles { get; set; }
+    public virtual DbSet<AccountProfileAddress> ProfileAddresses { get; set; }
 
 
     // Deleting an account profile also deletes the assocciated profile address (cascading)

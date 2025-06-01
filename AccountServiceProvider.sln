@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36109.1 d17.14
+VisualStudioVersion = 17.14.36109.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountServiceProvider.Api", "AccountServiceProvider.Api\AccountServiceProvider.Api.csproj", "{27021A0C-F6D6-4816-998D-D65A961B951F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountServiceProvider.Api.Tests", "AccountServiceProvider.Api.Tests\AccountServiceProvider.Api.Tests.csproj", "{7B30A083-FBC5-4C4F-8413-434555AC22D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{27021A0C-F6D6-4816-998D-D65A961B951F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27021A0C-F6D6-4816-998D-D65A961B951F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27021A0C-F6D6-4816-998D-D65A961B951F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B30A083-FBC5-4C4F-8413-434555AC22D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B30A083-FBC5-4C4F-8413-434555AC22D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B30A083-FBC5-4C4F-8413-434555AC22D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B30A083-FBC5-4C4F-8413-434555AC22D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
