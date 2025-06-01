@@ -3,6 +3,10 @@ using AccountServiceProvider.Api.Data.Entities;
 using AccountServiceProvider.Api.Dtos;
 using AccountServiceProvider.Api.Services;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Xunit;
 
 namespace AccountServiceProvider.Api.Tests;
 
@@ -61,6 +65,7 @@ public class AccountServiceTests : IDisposable
         var request = new CreateAccountRequest
         {
             UserId = "new-user-id",
+            Email = "john.doe@example.com", // Added Email
             FirstName = "John",
             LastName = "Doe",
             Phone = "1234567890",
@@ -76,11 +81,13 @@ public class AccountServiceTests : IDisposable
         Assert.True(result.Succeeded);
         Assert.NotNull(result.Result);
         Assert.Equal(request.UserId, result.Result.Id);
+        Assert.Equal(request.Email, result.Result.Email); // Added assertion for Email in result
         Assert.Equal("Account profile created.", result.Message);
 
         var savedProfile = await _context.Profiles.FindAsync(request.UserId);
         Assert.NotNull(savedProfile);
         Assert.Equal(request.FirstName, savedProfile.FirstName);
+        Assert.Equal(request.Email, savedProfile.Email); // Added assertion for Email in saved profile
     }
 
     [Fact]
@@ -88,9 +95,11 @@ public class AccountServiceTests : IDisposable
     {
         // Arrange
         var existingUserId = "existing-user-id";
-        await SeedData(new List<AccountProfile> { new AccountProfile { Id = existingUserId, Email = "existing@test.com", FirstName = "Old", LastName = "User", Phone = "000" } });
+        // Ensure the seeded data also has an email, as it's now required by the entity
+        await SeedData(new List<AccountProfile> { new AccountProfile { Id = existingUserId, Email = "existing@example.com", FirstName = "Old", LastName = "User", Phone = "000" } });
 
-        var request = new CreateAccountRequest { UserId = existingUserId, FirstName = "Test", LastName = "User", Phone = "123", StreetName = "Street", PostalCode = "12345", City = "City" };
+        // The request to create an already existing profile should also include an email
+        var request = new CreateAccountRequest { UserId = existingUserId, Email = "another.email@example.com", FirstName = "Test", LastName = "User", Phone = "123", StreetName = "Street", PostalCode = "12345", City = "City" };
 
         // Act
         var result = await _accountService.CreateAsync(request);
@@ -124,6 +133,7 @@ public class AccountServiceTests : IDisposable
         Assert.True(result.Succeeded);
         Assert.NotNull(result.Result);
         Assert.Equal(accountId, result.Result.Id);
+        Assert.Equal(expectedProfileData.Email, result.Result.Email); // Added assertion for Email
         Assert.NotNull(result.Result.Address);
         Assert.Equal(expectedProfileData.Address?.StreetName, result.Result.Address?.StreetName);
         Assert.Equal("Account profile retrieved.", result.Message);
@@ -160,7 +170,7 @@ public class AccountServiceTests : IDisposable
         };
         await SeedData(new List<AccountProfile> { initialProfile });
 
-        var updateRequest = new UpdateProfileRequest
+        var updateRequest = new UpdateProfileRequest // UpdateProfileRequest does not have Email, so Email won't be updated
         {
             FirstName = "John Updated",
             LastName = "Doe Updated",
@@ -177,6 +187,7 @@ public class AccountServiceTests : IDisposable
         Assert.True(result.Succeeded);
         Assert.NotNull(result.Result);
         Assert.Equal(updateRequest.FirstName, result.Result.FirstName);
+        Assert.Equal(initialProfile.Email, result.Result.Email); // Email should remain unchanged
         Assert.NotNull(result.Result.Address);
         Assert.Equal(updateRequest.StreetName, result.Result.Address?.StreetName);
         Assert.Equal("Account profile information updated.", result.Message);
@@ -184,6 +195,7 @@ public class AccountServiceTests : IDisposable
         var updatedProfileInDb = await _context.Profiles.Include(p => p.Address).FirstOrDefaultAsync(p => p.Id == accountId);
         Assert.NotNull(updatedProfileInDb);
         Assert.Equal(updateRequest.FirstName, updatedProfileInDb.FirstName);
+        Assert.Equal(initialProfile.Email, updatedProfileInDb.Email); // Verify Email in DB is unchanged
         Assert.Equal(updateRequest.StreetName, updatedProfileInDb.Address?.StreetName);
     }
 
