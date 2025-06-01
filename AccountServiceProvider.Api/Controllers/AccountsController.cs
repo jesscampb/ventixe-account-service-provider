@@ -1,5 +1,6 @@
 ﻿using AccountServiceProvider.Api.Data.Entities;
 using AccountServiceProvider.Api.Dtos;
+using AccountServiceProvider.Api.Mappers;
 using AccountServiceProvider.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -82,7 +83,9 @@ public class AccountsController(IAccountService accountService) : ControllerBase
         if (!result.Succeeded)
             return NotFound(result.Message);
 
-        return Ok(result.Result);
+        var profileDto = result.Result!.ToDto();
+
+        return Ok(profileDto);
     }
 
     /// <summary>
