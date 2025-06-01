@@ -21,6 +21,19 @@ public static class AccountProfileMapper
             }
         };
 
+    public static AccountProfileDto ToDto(this AccountProfile entity)
+        => new()
+        {
+            Id = entity.Id,
+            Email = entity.Email,
+            FirstName = entity.FirstName,
+            LastName = entity.LastName,
+            Phone = entity.Phone,
+            StreetName = entity.Address?.StreetName ?? string.Empty,
+            PostalCode = entity.Address?.PostalCode ?? string.Empty,
+            City = entity.Address?.City ?? string.Empty
+        };
+
     public static void Map(this AccountProfile entity, UpdateProfileRequest dto)
     {
         entity.FirstName = dto.FirstName;
