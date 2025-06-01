@@ -2,16 +2,9 @@
 using AccountServiceProvider.Api.Data.Entities;
 using AccountServiceProvider.Api.Dtos;
 using AccountServiceProvider.Api.Services;
-using AccountServiceProvider.Api.Services.Models;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace AccountServiceProvider.Api.Tests;
 
